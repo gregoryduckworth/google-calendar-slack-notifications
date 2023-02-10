@@ -1,7 +1,7 @@
-const { run } = require('./index');
-const axios = require('axios');
-const fs = require('fs');
-const { google } = require('googleapis');
+import axios from 'axios';
+import { run } from '../index';
+
+jest.mock('axios');
 
 jest.mock('googleapis', () => ({
   google: {
@@ -10,17 +10,11 @@ jest.mock('googleapis', () => ({
     },
     calendar: jest.fn(() => ({
       events: {
-        list: jest.fn(() => Promise.resolve({ data: { items: [{ start: { dateTime: '2022-01-01T12:00:00Z' }, description: 'community-test' }] } })),
+        list: jest.fn(() => Promise.resolve({ data: { items: [{ start: { dateTime: '2022-01-01T12:00:00Z' }, description: '#community-test' }] } })),
       },
     })),
   }
 }));
-
-jest.mock('axios', () => {
-  return {
-    post: jest.fn(() => Promise.resolve({ data: {} })),
-  };
-});
 
 jest.mock('fs', () => {
   return {
@@ -31,7 +25,7 @@ jest.mock('fs', () => {
 describe('Calendar', () => {
   beforeEach(() => {
     process.env.SLACK_TOKEN = 'token';
-    process.env.CALENDAR_ID = 'calendar-id';
+    process.env.CALENDAR_ID = 'calendar_id'; 
   });
 
   afterEach(() => {
@@ -39,11 +33,15 @@ describe('Calendar', () => {
   });
 
   it('posts events to Slack', async () => {
+    // set up mock for axios.get
+    const mock = jest.spyOn(axios, 'post');
+    mock.mockReturnValueOnce(Promise.resolve({ data: {} }));
+
     await run();
 
     expect(axios.post).toHaveBeenCalledWith('https://slack.com/api/chat.postMessage', {
       channel: '#community-test',
-      text: 'Hey @channel! There is a community meeting starting at 12:00',
+      text: 'Hey @channel! There is a test community meeting starting at 12:00',
     }, { headers: { authorization: `Bearer token` } });
   });
 });

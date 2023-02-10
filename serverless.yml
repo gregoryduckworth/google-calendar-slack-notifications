@@ -1,6 +1,9 @@
 service: google-calendar-slack-notifications
 frameworkVersion: "3"
 
+plugins:
+  - serverless-plugin-typescript
+
 provider:
   name: aws
   runtime: nodejs18.x

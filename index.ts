@@ -1,7 +1,7 @@
 require('dotenv').config();
-const { google } = require('googleapis');
-const axios = require('axios');
-const fs = require('fs');
+import { google } from 'googleapis';
+import axios from 'axios';
+import * as fs from 'fs';
 const slackURL = 'https://slack.com/api/chat.postMessage';
 
 const COMMUNITIES = [
@@ -16,9 +16,14 @@ const COMMUNITIES = [
   'test',
 ];
 
-let credentials = JSON.parse(fs.readFileSync('./credentials.json', 'utf8'));
-
 const getClient = async () => {
+  let credentials;
+  try { 
+    credentials = JSON.parse(fs.readFileSync('./credentials.json', 'utf8'))
+  } catch {
+    console.log('You haven\'t setup your credentials.json file');
+    return;
+  }
   return await google.auth.getClient({
     credentials,
     scopes: 'https://www.googleapis.com/auth/calendar.readonly',
@@ -41,7 +46,6 @@ const getEvents = async (calendar) => {
     orderBy: 'startTime',
     maxResults: 10
   });
-
   return res.data.items;
 };
 
@@ -51,30 +55,36 @@ const postEventsToSlack = async (events) => {
     return;
   }
 
-  events.forEach((event) => {
+  for(const event of events) {
     for (const name of COMMUNITIES) {
-      if (isExactMatch(event.description, `community-${name}`)) {
+      if (containsExactMatch(event.description, `#community-${name}`)) {
         const start = new Date(event.start.dateTime).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
         axios.post(slackURL, {
           channel: `#community-${name}`,
-          text: `Hey @channel! There is a community meeting starting at ${start}`
+          text: `Hey @channel! There is a ${name} community meeting starting at ${start}`
         }, { headers: { authorization: `Bearer ${process.env.SLACK_TOKEN}` } });
       }
     }
-  });
+  };
 };
 
 const escapeRegExpMatch = function(s) {
   return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 };
 
-const isExactMatch = (str, match) => {
-  return new RegExp(`^${escapeRegExpMatch(match)}$`).test(str);
+const containsExactMatch = (str, match) => {
+  const escapedMatch = escapeRegExpMatch(match).replace(/\s+/g, '\\s+');
+  const pattern = new RegExp(`^${escapedMatch}$`, 'm');
+  return pattern.test(str);
 };
 
-module.exports.run = async () => {
+export const run = async () => {
   const client = await getClient();
-  const calendar = getCalendar(client);
-  const events = await getEvents(calendar);
-  postEventsToSlack(events);
+  if(client) {
+    const calendar = getCalendar(client);
+    const events = await getEvents(calendar);
+    postEventsToSlack(events);
+  }
 };
+
+module.exports.run = run;
