@@ -17,7 +17,9 @@
     "eslint-plugin-n": "^15.6.1",
     "eslint-plugin-promise": "^6.1.1",
     "googleapis": "^110.0.0",
+    "husky": "^8.0.0",
     "jest": "^29.4.2",
+    "lint-staged": "^13.1.1",
     "prettier": "^2.8.4",
     "serverless": "^3.27.0",
     "serverless-plugin-typescript": "^2.1.4",
@@ -28,11 +30,23 @@
   "scripts": {
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
     "lint": "eslint --ext .ts .",
-    "prepare": "cp -n .env.sample .env || true",
+    "prepare": "cp -n .env.sample .env || true && husky install",
     "sls": "serverless",
     "sls:deploy": "sls -- deploy",
     "sls:local": "sls invoke local --function cronHandler",
     "sls:logs": "sls -- logs -f cronHandler",
     "test": "jest"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,md}": "prettier --write",
+    "*.{ts,tsx}": [
+      "eslint --cache --fix",
+      "npm run test"
+    ]
   }
 }
