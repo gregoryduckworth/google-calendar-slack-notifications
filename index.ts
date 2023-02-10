@@ -59,10 +59,11 @@ const postEventsToSlack = async (events) => {
   for (const event of events) {
     for (const name of COMMUNITIES) {
       if (containsExactMatch(event.description, `#community-${name}`)) {
-        const start = new Date(event.start.dateTime).toLocaleTimeString([], {
+        let start = new Date(event.start.dateTime).toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
         });
+        start = start.replace(" AM", "").replace(" PM", ""); // Ensure we remove as issues on CI
         axios.post(
           slackURL,
           {
