@@ -1,5 +1,6 @@
 .build
 .env
+.eslintcache
 .serverless
 credentials.json
 node_modules

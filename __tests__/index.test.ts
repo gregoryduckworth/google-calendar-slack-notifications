@@ -44,10 +44,6 @@ describe("Calendar", () => {
   });
 
   it("posts events to Slack", async () => {
-    // set up mock for axios.get
-    const mock = jest.spyOn(axios, "post");
-    mock.mockReturnValueOnce(Promise.resolve({ data: {} }));
-
     await run();
 
     expect(axios.post).toHaveBeenCalledWith(
