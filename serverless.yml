@@ -2,6 +2,7 @@ service: google-calendar-slack-notifications
 frameworkVersion: "3"
 
 plugins:
+  - serverless-dotenv-plugin
   - serverless-plugin-typescript
 
 provider:

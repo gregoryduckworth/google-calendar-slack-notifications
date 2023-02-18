@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-require("dotenv").config();
 import { google } from "googleapis";
 import axios from "axios";
 import * as fs from "fs";
@@ -59,11 +57,13 @@ const postEventsToSlack = async (events) => {
   for (const event of events) {
     for (const name of COMMUNITIES) {
       if (containsExactMatch(event.description, `#community-${name}`)) {
-        let start = new Date(event.start.dateTime).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-        start = start.replace(" AM", "").replace(" PM", ""); // Ensure we remove as issues on CI
+        const start = new Date(event.start.dateTime).toLocaleTimeString(
+          "en-GB",
+          {
+            hour: "2-digit",
+            minute: "2-digit",
+          }
+        );
         axios.post(
           slackURL,
           {
