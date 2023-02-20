@@ -61,7 +61,7 @@ const postEventsToSlack = async (events) => {
           slackURL,
           {
             channel: `#community-${name}`,
-            text: await slackMessage(startTime, event),
+            text: `Hey <!channel>!\nThere is a ${name} session starting at ${startTime}:\n${event.description}`,
           },
           { headers: { authorization: `Bearer ${process.env.SLACK_TOKEN}` } }
         );
@@ -78,10 +78,6 @@ const containsExactMatch = (str, match) => {
   const escapedMatch = escapeRegExpMatch(match).replace(/\s+/g, "\\s+");
   const pattern = new RegExp(`^${escapedMatch}$`, "m");
   return pattern.test(str);
-};
-
-const slackMessage = async (startTime, event) => {
-  return `Hey <!channel>!\nThere is a ${event.summary} starting at ${startTime}:\n${event.description}`;
 };
 
 export const run = async () => {
