@@ -1,6 +1,5 @@
-import { google } from "googleapis";
 import axios from "axios";
-const slackURL = "https://slack.com/api/chat.postMessage";
+import { google } from "googleapis";
 
 const COMMUNITIES = [
   "accessibility",
@@ -58,7 +57,7 @@ const postEventsToSlack = async (events) => {
           }
         );
         axios.post(
-          slackURL,
+          "https://slack.com/api/chat.postMessage",
           {
             channel: `#community-${name}`,
             text:

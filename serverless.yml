@@ -15,14 +15,10 @@ provider:
   runtime: nodejs18.x
   region: eu-west-2
 
-package:
-  patterns:
-    - credentials.json
-
 functions:
   cronHandler:
     handler: src/index.run
     events:
       # Invoke Lambda function every hour from Mon-Fri
       # 1 minute passed the hour to catch the start of the next one
-      - schedule: rate(5 minutes)
+      - schedule: cron(1 * ? * MON-FRI *)
