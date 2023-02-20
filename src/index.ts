@@ -1,5 +1,6 @@
 import axios from "axios";
 import { google } from "googleapis";
+import htmlToMrkdwn from "html-to-mrkdwn-ts";
 
 const COMMUNITIES = [
   "accessibility",
@@ -48,7 +49,7 @@ const postEventsToSlack = async (events) => {
 
   for (const event of events) {
     for (const name of COMMUNITIES) {
-      if (containsExactMatch(event.description, `#community-${name}`)) {
+      if (event.description.includes(`#community-${name}`)) {
         const startTime = new Date(event.start.dateTime).toLocaleTimeString(
           "en-GB",
           {
@@ -60,10 +61,34 @@ const postEventsToSlack = async (events) => {
           "https://slack.com/api/chat.postMessage",
           {
             channel: `#community-${name}`,
-            text:
-              `Hey <!channel>!\n` +
-              `There is a #community-${name} session starting at ${startTime}:\n` +
-              `${eventDescription(event.description)}`,
+            blocks: [
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text: `Hey @channel! There is a #community-test meeting starting at ${startTime}:`,
+                },
+              },
+              {
+                type: "divider",
+              },
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text:
+                    `*${event.summary}*` +
+                    ` ${zoomLink(event.conferenceData.entryPoints) ?? ""}\n` +
+                    `${htmlToMrkdwn(event.description).text}`,
+                },
+                accessory: {
+                  type: "image",
+                  image_url:
+                    "https://api.slack.com/img/blocks/bkb_template_images/notifications.png",
+                  alt_text: "calendar thumbnail",
+                },
+              },
+            ],
           },
           { headers: { authorization: `Bearer ${process.env.SLACK_TOKEN}` } }
         );
@@ -72,26 +97,12 @@ const postEventsToSlack = async (events) => {
   }
 };
 
-const eventDescription = (description) => {
-  for (const name of COMMUNITIES) {
-    description = description
-      .split("\n")
-      .filter(function (line) {
-        return line.indexOf(`#community-${name}`) == -1;
-      })
-      .join("\n");
+const zoomLink = (event) => {
+  for (const entry of event) {
+    if (entry.entryPointType === "video") {
+      return `(<${entry.uri}|Zoom Link>)`;
+    }
   }
-  return `${description}`;
-};
-
-const escapeRegExpMatch = (str) => {
-  return str.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
-};
-
-const containsExactMatch = (str, match) => {
-  const escapedMatch = escapeRegExpMatch(match).replace(/\s+/g, "\\s+");
-  const pattern = new RegExp(`^${escapedMatch}$`, "m");
-  return pattern.test(str);
 };
 
 export const run = async () => {

@@ -19,10 +19,15 @@ jest.mock("googleapis", () => {
                     start: { dateTime: "2022-01-01T12:00:00Z" },
                     summary: "Test Craftsmanship",
                     description:
-                      `#community-dev\n` +
-                      `#community-test\n` +
-                      `- Agenda item 1\n` +
-                      `- Agenda item 2`,
+                      `#community-test` + `- Agenda item 1` + `- Agenda item 2`,
+                    conferenceData: {
+                      entryPoints: [
+                        {
+                          entryPointType: "video",
+                          uri: "http://example.org",
+                        },
+                      ],
+                    },
                   },
                 ],
               },
@@ -51,11 +56,35 @@ describe("Calendar", () => {
       "https://slack.com/api/chat.postMessage",
       {
         channel: "#community-test",
-        text:
-          `Hey <!channel>!\n` +
-          `There is a #community-test session starting at 12:00:\n` +
-          `- Agenda item 1\n` +
-          `- Agenda item 2`,
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: `Hey @channel! There is a #community-test meeting starting at 12:00:`,
+            },
+          },
+          {
+            type: "divider",
+          },
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text:
+                `*Test Craftsmanship* (<http://example.org|Zoom Link>)\n` +
+                `#community-test` +
+                `- Agenda item 1` +
+                `- Agenda item 2`,
+            },
+            accessory: {
+              type: "image",
+              image_url:
+                "https://api.slack.com/img/blocks/bkb_template_images/notifications.png",
+              alt_text: "calendar thumbnail",
+            },
+          },
+        ],
       },
       {
         headers: {
