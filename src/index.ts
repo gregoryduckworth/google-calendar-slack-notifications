@@ -48,7 +48,8 @@ const postEventsToSlack = async (events) => {
 
   for (const event of events) {
     for (const name of COMMUNITIES) {
-      if (containsExactMatch(event.description, `#community-${name}`)) {
+      if (event.description.includes(`#community-${name}`)) {
+        console.log(name);
         const startTime = new Date(event.start.dateTime).toLocaleTimeString(
           "en-GB",
           {
@@ -63,35 +64,13 @@ const postEventsToSlack = async (events) => {
             text:
               `Hey <!channel>!\n` +
               `There is a #community-${name} session starting at ${startTime}:\n` +
-              `${eventDescription(event.description)}`,
+              `${event.description}`,
           },
           { headers: { authorization: `Bearer ${process.env.SLACK_TOKEN}` } }
         );
       }
     }
   }
-};
-
-const eventDescription = (description) => {
-  for (const name of COMMUNITIES) {
-    description = description
-      .split("\n")
-      .filter(function (line) {
-        return line.indexOf(`#community-${name}`) == -1;
-      })
-      .join("\n");
-  }
-  return `${description}`;
-};
-
-const escapeRegExpMatch = (str) => {
-  return str.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
-};
-
-const containsExactMatch = (str, match) => {
-  const escapedMatch = escapeRegExpMatch(match).replace(/\s+/g, "\\s+");
-  const pattern = new RegExp(`^${escapedMatch}$`, "m");
-  return pattern.test(str);
 };
 
 export const run = async () => {
