@@ -46,7 +46,7 @@ describe("Calendar", () => {
       "https://slack.com/api/chat.postMessage",
       {
         channel: "#community-test",
-        text: "Hey <!channel>!\nThere is a Test Craftsmanship starting at 12:00:\n#community-test",
+        text: "Hey <!channel>!\nThere is a test session starting at 12:00:\n#community-test",
       },
       { headers: { authorization: `Bearer token` } }
     );
