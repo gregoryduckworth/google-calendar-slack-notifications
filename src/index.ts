@@ -57,20 +57,34 @@ const postEventsToSlack = async (events) => {
             minute: "2-digit",
           }
         );
-        axios.post(
-          slackURL,
-          {
-            channel: `#community-${name}`,
-            text: `Hey <!channel>!\nThere is a ${name} session starting at ${startTime}:\n${event.description}`,
-          },
-          { headers: { authorization: `Bearer ${process.env.SLACK_TOKEN}` } }
-        );
+        axios
+          .post(
+            slackURL,
+            {
+              channel: `#community-${name}`,
+              text: slackMessage(name, startTime, event),
+            },
+            { headers: { authorization: `Bearer ${process.env.SLACK_TOKEN}` } }
+          )
+          .catch((error) => {
+            console.log(`ERROR: ${error}`);
+          });
       }
     }
   }
 };
 
-const escapeRegExpMatch = function (s) {
+const slackMessage = (name, startTime, event) => {
+  const description = event.description
+    .split("\n")
+    .filter(function (line) {
+      return line.indexOf(`#community-${name}`) == -1;
+    })
+    .join("\n");
+  return `Hey <!channel>!\nThere is a #community-${name} session starting at ${startTime}:\n${description}`;
+};
+
+const escapeRegExpMatch = (s) => {
   return s.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
 };
 
