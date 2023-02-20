@@ -1,5 +1,5 @@
 import axios from "axios";
-import { run } from "../index";
+import { run } from "../src/index";
 
 jest.mock("axios");
 
@@ -16,6 +16,7 @@ jest.mock("googleapis", () => ({
               items: [
                 {
                   start: { dateTime: "2022-01-01T12:00:00Z" },
+                  summary: "Test Craftsmanship",
                   description: "#community-test",
                 },
               ],
@@ -27,16 +28,11 @@ jest.mock("googleapis", () => ({
   },
 }));
 
-jest.mock("fs", () => {
-  return {
-    readFileSync: jest.fn(() => '{ "test": "credentials" }'),
-  };
-});
-
 describe("Calendar", () => {
   beforeEach(() => {
     process.env.SLACK_TOKEN = "token";
     process.env.CALENDAR_ID = "calendar_id";
+    process.env.CREDENTIALS = '{ "test": "credentials" }';
   });
 
   afterEach(() => {
@@ -50,7 +46,7 @@ describe("Calendar", () => {
       "https://slack.com/api/chat.postMessage",
       {
         channel: "#community-test",
-        text: "Hey @channel! There is a test community meeting starting at 12:00",
+        text: "Hey <!channel>!\nThere is a Test Craftsmanship starting at 12:00:\n#community-test",
       },
       { headers: { authorization: `Bearer token` } }
     );

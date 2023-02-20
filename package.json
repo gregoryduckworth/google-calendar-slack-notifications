@@ -7,10 +7,7 @@
   "dependencies": {
     "axios": "^1.3.2",
     "dotenv": "^16.0.3",
-    "googleapis": "^110.0.0",
-    "serverless": "^3.27.0",
-    "serverless-dotenv-plugin": "^4.0.2",
-    "serverless-plugin-typescript": "^2.1.4"
+    "googleapis": "^110.0.0"
   },
   "devDependencies": {
     "@types/jest": "^29.4.0",
@@ -22,22 +19,29 @@
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^15.6.1",
     "eslint-plugin-promise": "^6.1.1",
+    "fork-ts-checker-webpack-plugin": "^7.3.0",
     "husky": "^8.0.0",
     "jest": "^29.4.2",
     "lint-staged": "^13.1.1",
     "prettier": "^2.8.4",
+    "serverless": "^3.27.0",
+    "serverless-dotenv-plugin": "^4.0.2",
+    "serverless-webpack": "^5.11.0",
     "ts-jest": "^29.0.5",
+    "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
-    "typescript": "^4.9.5"
+    "typescript": "^4.9.5",
+    "webpack": "^5.75.0",
+    "webpack-node-externals": "^3.0.0"
   },
   "scripts": {
     "format": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
     "lint": "eslint --ext .ts .",
     "prepare": "cp -n .env.sample .env || true && husky install",
     "sls": "serverless",
-    "deploy": "sls -- deploy",
+    "deploy": "sls deploy",
     "local": "sls invoke local --function cronHandler",
-    "logs": "sls -- logs -f cronHandler",
+    "logs": "sls logs -f cronHandler",
     "test": "jest"
   },
   "husky": {
