@@ -1,6 +1,5 @@
 import { google } from "googleapis";
 import axios from "axios";
-import * as fs from "fs";
 const slackURL = "https://slack.com/api/chat.postMessage";
 
 const COMMUNITIES = [
@@ -16,13 +15,7 @@ const COMMUNITIES = [
 ];
 
 const getClient = async () => {
-  let credentials;
-  try {
-    credentials = JSON.parse(fs.readFileSync("./credentials.json", "utf8"));
-  } catch {
-    console.log("You haven't setup your credentials.json file");
-    return;
-  }
+  const credentials = JSON.parse(process.env.CREDENTIALS);
   return await google.auth.getClient({
     credentials,
     scopes: "https://www.googleapis.com/auth/calendar.readonly",
@@ -57,7 +50,7 @@ const postEventsToSlack = async (events) => {
   for (const event of events) {
     for (const name of COMMUNITIES) {
       if (containsExactMatch(event.description, `#community-${name}`)) {
-        const start = new Date(event.start.dateTime).toLocaleTimeString(
+        const startTime = new Date(event.start.dateTime).toLocaleTimeString(
           "en-GB",
           {
             hour: "2-digit",
@@ -68,7 +61,7 @@ const postEventsToSlack = async (events) => {
           slackURL,
           {
             channel: `#community-${name}`,
-            text: `Hey @channel! There is a ${name} community meeting starting at ${start}`,
+            text: await slackMessage(startTime, event),
           },
           { headers: { authorization: `Bearer ${process.env.SLACK_TOKEN}` } }
         );
@@ -85,6 +78,10 @@ const containsExactMatch = (str, match) => {
   const escapedMatch = escapeRegExpMatch(match).replace(/\s+/g, "\\s+");
   const pattern = new RegExp(`^${escapedMatch}$`, "m");
   return pattern.test(str);
+};
+
+const slackMessage = async (startTime, event) => {
+  return `Hey <!channel>!\nThere is a ${event.summary} starting at ${startTime}:\n${event.description}`;
 };
 
 export const run = async () => {

@@ -2,18 +2,27 @@ service: google-calendar-slack-notifications
 frameworkVersion: "3"
 
 plugins:
+  - serverless-webpack
   - serverless-dotenv-plugin
-  - serverless-plugin-typescript
+
+custom:
+  webpack:
+    webpackConfig: webpack.config.ts
+    includeModules: true
 
 provider:
   name: aws
   runtime: nodejs18.x
   region: eu-west-2
 
+package:
+  patterns:
+    - credentials.json
+
 functions:
   cronHandler:
-    handler: index.run
+    handler: src/index.run
     events:
       # Invoke Lambda function every hour from Mon-Fri
       # 1 minute passed the hour to catch the start of the next one
-      - schedule: cron(1 * * * MON-FRI *)
+      - schedule: rate(5 minutes)
