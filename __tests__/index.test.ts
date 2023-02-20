@@ -3,30 +3,36 @@ import { run } from "../src/index";
 
 jest.mock("axios");
 
-jest.mock("googleapis", () => ({
-  google: {
-    auth: {
-      getClient: jest.fn(() => Promise.resolve({ auth: "client-auth" })),
-    },
-    calendar: jest.fn(() => ({
-      events: {
-        list: jest.fn(() =>
-          Promise.resolve({
-            data: {
-              items: [
-                {
-                  start: { dateTime: "2022-01-01T12:00:00Z" },
-                  summary: "Test Craftsmanship",
-                  description: "#community-test",
-                },
-              ],
-            },
-          })
-        ),
+jest.mock("googleapis", () => {
+  return {
+    google: {
+      auth: {
+        getClient: jest.fn(() => Promise.resolve({ auth: "client-auth" })),
       },
-    })),
-  },
-}));
+      calendar: jest.fn(() => ({
+        events: {
+          list: jest.fn(() =>
+            Promise.resolve({
+              data: {
+                items: [
+                  {
+                    start: { dateTime: "2022-01-01T12:00:00Z" },
+                    summary: "Test Craftsmanship",
+                    description:
+                      `#community-dev\n` +
+                      `#community-test\n` +
+                      `- Agenda item 1\n` +
+                      `- Agenda item 2`,
+                  },
+                ],
+              },
+            })
+          ),
+        },
+      })),
+    },
+  };
+});
 
 describe("Calendar", () => {
   beforeEach(() => {
@@ -41,14 +47,38 @@ describe("Calendar", () => {
 
   it("posts events to Slack", async () => {
     await run();
-
     expect(axios.post).toHaveBeenCalledWith(
       "https://slack.com/api/chat.postMessage",
       {
         channel: "#community-test",
-        text: "Hey <!channel>!\nThere is a test session starting at 12:00:\n#community-test",
+        text:
+          `Hey <!channel>!\n` +
+          `There is a #community-test session starting at 12:00:\n` +
+          `- Agenda item 1\n` +
+          `- Agenda item 2`,
       },
-      { headers: { authorization: `Bearer token` } }
+      {
+        headers: {
+          authorization: `Bearer token`,
+        },
+      }
     );
+  });
+
+  it("does not post events to Slack when no events are found", async () => {
+    jest.mock("googleapis", () => ({
+      google: {
+        auth: {
+          getClient: jest.fn(() => Promise.resolve({ auth: "client-auth" })),
+        },
+        calendar: jest.fn(() => ({
+          events: {
+            list: jest.fn().mockResolvedValue({ data: { items: [] } }),
+          },
+        })),
+      },
+    }));
+    await run();
+    expect(axios.post).not.toHaveBeenCalled();
   });
 });

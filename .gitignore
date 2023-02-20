@@ -3,5 +3,4 @@
 .serverless
 .webpack
 .webpackCache
-credentials.json
 node_modules
