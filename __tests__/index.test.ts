@@ -17,9 +17,8 @@ jest.mock("googleapis", () => {
                 items: [
                   {
                     start: { dateTime: "2022-01-01T12:00:00Z" },
-                    summary: "Test Craftsmanship",
-                    description:
-                      `#community-test` + `- Agenda item 1` + `- Agenda item 2`,
+                    summary: "Community Meeting",
+                    description: `#community-test #community-dev - Agenda item 1 - Agenda item 2`,
                     conferenceData: {
                       entryPoints: [
                         {
@@ -50,48 +49,50 @@ describe("Calendar", () => {
     jest.resetAllMocks();
   });
 
-  it("posts events to Slack", async () => {
+  it("posts events to Slack in community channels", async () => {
     await run();
-    expect(axios.post).toHaveBeenCalledWith(
-      "https://slack.com/api/chat.postMessage",
-      {
-        channel: "#community-test",
-        blocks: [
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text: `Hey @channel! There is a #community-test meeting starting at 12:00:`,
+    expect(axios.post).toHaveBeenCalledTimes(2);
+    for (const name of ["dev", "test"]) {
+      expect(axios.post).toHaveBeenCalledWith(
+        "https://slack.com/api/chat.postMessage",
+        {
+          channel: `#community-${name}`,
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `Hey @channel! There is a meeting starting at 12:00:`,
+              },
             },
-          },
-          {
-            type: "divider",
-          },
-          {
-            type: "section",
-            text: {
-              type: "mrkdwn",
-              text:
-                `*Test Craftsmanship* (<http://example.org|Zoom Link>)\n` +
-                `#community-test` +
-                `- Agenda item 1` +
-                `- Agenda item 2`,
+            {
+              type: "divider",
             },
-            accessory: {
-              type: "image",
-              image_url:
-                "https://api.slack.com/img/blocks/bkb_template_images/notifications.png",
-              alt_text: "calendar thumbnail",
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text:
+                  `*Community Meeting* (<http://example.org|Zoom Link>)\n` +
+                  `#community-test #community-dev - Agenda item 1 - Agenda item 2`,
+              },
+              accessory: {
+                type: "image",
+                image_url:
+                  "https://api.slack.com/img/blocks/bkb_template_images/notifications.png",
+                alt_text: "calendar thumbnail",
+              },
             },
-          },
-        ],
-      },
-      {
-        headers: {
-          authorization: `Bearer token`,
+          ],
+          unfurl_links: false,
         },
-      }
-    );
+        {
+          headers: {
+            authorization: `Bearer token`,
+          },
+        }
+      );
+    }
   });
 
   it("does not post events to Slack when no events are found", async () => {

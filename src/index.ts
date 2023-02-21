@@ -66,7 +66,7 @@ const postEventsToSlack = async (events) => {
                 type: "section",
                 text: {
                   type: "mrkdwn",
-                  text: `Hey @channel! There is a #community-test meeting starting at ${startTime}:`,
+                  text: `Hey @channel! There is a meeting starting at ${startTime}:`,
                 },
               },
               {
@@ -89,6 +89,7 @@ const postEventsToSlack = async (events) => {
                 },
               },
             ],
+            unfurl_links: false,
           },
           { headers: { authorization: `Bearer ${process.env.SLACK_TOKEN}` } }
         );
